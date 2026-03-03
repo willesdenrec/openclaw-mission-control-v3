@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw Mission Control v3.0 | AI Agent Operations Center</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <style>
+        /* Initial loading animation */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0f;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .loading-logo {
+            font-size: 3rem;
+            color: #00ff9d;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px #00ff9d;
+            animation: pulse 2s infinite;
+        }
+        
+        .loading-bar {
+            width: 300px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff9d, #00b8ff);
+            width: 0%;
+            animation: loading 3s ease-in-out forwards;
+        }
+        
+        .loading-text {
+            color: #00b8ff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        
+        @keyframes loading {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-logo">
+            <i class="fas fa-brain-circuit"></i> OPENCLAW
+        </div>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+        <div class="loading-text" id="loading-text">INITIALIZING MISSION CONTROL...</div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container" id="main-container" style="display: none;">
+        <!-- Background Effects -->
+        <div class="bg-grid"></div>
+        <div class="bg-particles"></div>
+        <div class="bg-scanlines"></div>
+        
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-brain-circuit"></i>
+                    </div>
+                    <div class="logo-text">
+                        <span class="logo-main">OPENCLAW</span>
+                        <span class="logo-sub">MISSION CONTROL v3.0</span>
+                    </div>
+                </div>
+                <div class="system-time">
+                    <div class="time" id="current-time">--:--:--</div>
+                    <div class="date" id="current-date">--- --- ----</div>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="status-board">
+                    <div class="status-item online">
+                        <div class="status-indicator"></div>
+                        <span>SYSTEM: ONLINE</span>
+                    </div>
+                    <div class="status-item active">
+                        <div class="status-indicator"></div>
+                        <span>AGENTS: 8 ACTIVE</span>
+                    </div>
+                    <div class="status-item stable">
+                        <div class="status-indicator"></div>
+                        <span>NETWORK: STABLE</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="btn-alert" id="btn-alerts">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span class="alert-badge">3</span>
+                </button>
+                <button class="btn-command" id="btn-command">
+                    <i class="fas fa-terminal"></i>
+                    <span>COMMAND</span>
+                </button>
+                <div class="user-profile">
+                    <div class="avatar">X</div>
+                    <div class="user-info">
+                        <span class="user-name">OPERATOR: XAVIER</span>
+                        <span class="user-role">MISSION DIRECTOR</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard -->
+        <main class="dashboard">
+            <!-- Left Panel: Agent Operations Center -->
+            <section class="panel agent-center">
+                <div class="panel-header">
+                    <h2><i class="fas fa-robot"></i> AGENT OPERATIONS CENTER</h2>
+                    <div class="panel-actions">
+                        <button class="btn-panel" title="Add Agent"><i class="fas fa-plus"></i></button>
+                        <button class="btn-panel" title="Configure"><i class="fas fa-cog"></i></button>
+                        <button class="btn-panel" title="Full View"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <!-- Animated Agent Grid -->
+                    <div class="agent-grid">
+                        <!-- GitHub Agent -->
+                        <div class="agent-card" data-agent="github">
+                            <div class="agent-visual">
+                                <div class="agent-avatar">
+                                    <i class="fab fa-github"></i>
+                                </div>
+                                <div class="agent-status active"></div>
+                                <div class="agent-pulse"></div>
+                            </div>
+                            <div class="agent-info">
+                                <h3 class="agent-name">GitHub Agent</h3>
+                                <div class="agent-stats">
+                                    <span class="stat"><i class="fas fa-code-branch"></i> 42 Commits</span>
+                                    <span class="stat"><i class="fas fa-server"></i> 8 Repos</span>
+                                </div>
+                                <div class="agent-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 85%"></div>
+                                    </div>
+                                    <span class="progress-text">85% Load</span>
+                                </div>
+                            </div>
+                            <div class="agent-actions">
+                                <button class="btn-agent" title="View Details"><i class="fas fa-info"></i></button>
+                                <button class="btn-agent" title="Restart"><i class="fas fa-redo"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Coding Agent -->
+                        <div class="agent-card" data-agent="coding">
+                            <div class="agent-visual">
+                                <div class="agent-avatar">
+                                    <i class="fas fa-code"></i>
+                                </div>
+                                <div class="agent-status busy"></div>
+                                <div class="agent-pulse"></div>
+                            </div>
+                            <div class="agent-info">
+                                <h3 class="agent-name">Coding Agent</h3>
+                                <div class="agent-stats">
+                                    <span class="stat"><i class="fas fa-file-code"></i> 156 Files</span>
+                                    <span class="stat"><i class="fas fa-bolt"></i> 92% CPU</span>
+                                </div>
+                                <div class="agent-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 92%"></div>
+                                    </div>
+                                    <span class="progress-text">92% Load</span>
+                                </div>
+                            </div>
+                            <div class="agent-actions">
+                                <button class="btn-agent" title="View Details"><i class="fas fa-info"></i></button>
+                                <button class="btn-agent" title="Restart"><i class="fas fa-redo"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Research Agent -->
+                        <div class="agent-card" data-agent="research">
+                            <div class="agent-visual">
+                                <div class="agent-avatar">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <div class="agent-status idle"></div>
+                                <div class="agent-pulse"></div>
+                            </div>
+                            <div class="agent-info">
+                                <h3 class="agent-name">Research Agent</h3>
+                                <div class="agent-stats">
+                                    <span class="stat"><i class="fas fa-book"></i> 15 Papers</span>
+                                    <span class="stat"><i class="fas fa-chart-bar"></i> 42% Mem</span>
+                                </div>
+                                <div class="agent-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 42%"></div>
+                                    </div>
+                                    <span class="progress-text">42% Load</span>
+                                </div>
+                            </div>
+                            <div class="agent-actions">
+                                <button class="btn-agent" title="View Details"><i class="fas fa-info"></i></button>
+                                <button class="btn-agent" title="Restart"><i class="fas fa-redo"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Monitoring Agent -->
+                        <div class="agent-card" data-agent="monitoring">
+                            <div class="agent-visual">
+                                <div class="agent-avatar">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="agent-status active"></div>
+                                <div class="agent-pulse"></div>
+                            </div>
+                            <div class="agent-info">
+                                <h3 class="agent-name">Monitoring Agent</h3>
+                                <div class="agent-stats">
+                                    <span class="stat"><i class="fas fa-eye"></i> 284 Metrics</span>
+                                    <span class="stat"><i class="fas fa-network-wired"></i> 45 KB/s</span>
+                                </div>
+                                <div class="agent-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 68%"></div>
+                                    </div>
+                                    <span class="progress-text">68% Load</span>
+                                </div>
+                            </div>
+                            <div class="agent-actions">
+                                <button class="btn-agent" title="View Details"><i class="fas fa-info"></i></button>
+                                <button class="btn-agent" title="Restart"><i class="fas fa-redo"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Flow Visualization -->
+                    <div class="data-flow">
+                        <div class="flow-line"></div>
+                        <div class="flow-particle" style="--delay: 0s"></div>
+                        <div class="flow-particle" style="--delay: 0.5s"></div>
+                        <div class="flow-particle" style="--delay: 1s"></div>
+                        <div class="flow-particle" style="--delay: 1.5s"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Center Panel: System Dashboard -->
+            <section class="panel system-dashboard">
+                <div class="panel-header">
+                    <h2><i class="fas fa-tachometer-alt"></i> SYSTEM DASHBOARD</h2>
+                    <div class="panel-actions">
+                        <button class="btn-panel active" title="Auto Refresh"><i class="fas fa-sync"></i></button>
+                        <button class="btn-panel" title="Export Data"><i class="fas fa-download"></i></button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <!-- Real-time Metrics -->
+                    <div class="metrics-grid">
+                        <div class="metric-card cpu">
+                            <div class="metric-header">
+                                <h3><i class="fas fa-microchip"></i> CPU USAGE</h3>
+                                <span class="metric-value" id="cpu-value">42%</span>
+                            </div>
+                            <div class="metric-visual">
+                                <div class="metric-gauge">
+                                    <div class="gauge-fill" style="--value: 42%"></div>
+                                    <div class="gauge-needle"></div>
+                                </div>
+                            </div>
+                            <div class="metric-footer">
+                                <span class="metric-trend up">+2.1%</span>
+                                <span class="metric-time">Last 5min</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-card memory">
+                            <div class="metric-header">
+                                <h3><i class="fas fa-memory"></i> MEMORY</h3>
+                                <span class="metric-value" id="memory-value">1.2/4.0 GB</span>
+                            </div>
+                            <div class="metric-visual">
+                                <div class="metric-gauge">
+                                    <div class="gauge-fill" style="--value: 30%"></div>
+                                    <div class="gauge-needle"></div>
+                                </div>
+                            </div>
+                            <div class="metric-footer">
+                                <span class="metric-trend stable">±0.0%</span>
+                                <span class="metric-time">Last 5min</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-card network">
+                            <div class="metric-header">
+                                <h3><i class="fas fa-network-wired"></i> NETWORK</h3>
+                                <span class="metric-value" id="network-value">45 KB/s</span>
+                            </div>
+                            <div class="metric-visual">
+                                <div class="metric-gauge">
+                                    <div class="gauge-fill" style="--value: 22%"></div>
+                                    <div class="gauge-needle"></div>
+                                </div>
+                            </div>
+                            <div class="metric-footer">
+                                <span class="metric-trend down">-5.3%</span>
+                                <span class="metric-time">Last 5min</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-card agents">
+                            <div class="metric-header">
+                                <h3><i class="fas fa-robot"></i> AGENT LOAD</h3>
+                                <span class="metric-value" id="agent-value">68%</span>
+                            </div>
+                            <div class="metric-visual">
+                                <div class="metric-gauge">
+                                    <div class="gauge-fill" style="--value: 68%"></div>
+                                    <div class="gauge-needle"></div>
+                                </div>
+                            </div>
+                            <div class="metric-footer">
+                                <span class="metric-trend up">+12.4%</span>
+                                <span class="metric-time">Last 5min</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Charts -->
+                    <div class="charts-container">
+                        <div class="chart-card">
+                            <h3>Response Time (ms)</h3>
+                            <div class="chart-visual">
+                                <canvas id="response-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Success Rate (%)</h3>
+                            <div class="chart-visual">
+                                <canvas id="success-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Activity & Alerts -->
+            <section class="panel activity-panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-stream"></i> ACTIVITY STREAM</h2>
+                    <div class="panel-actions">
+                        <button class="btn-panel" title="Filter"><i class="fas fa-filter"></i></button>
+                        <button class="btn-panel" title="Clear"><i class="fas fa-trash"></i></button>
+                        <button class="btn-panel active" title="Live"><i class="fas fa-circle"></i></button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="activity-list" id="activity-list">
+                        <!-- Activities will be dynamically added -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bottom Panel: Task Queue -->
+            <section class="panel task-queue">
+                <div class="panel-header">
+                    <h2><i class="fas fa-tasks"></i> TASK QUEUE</h2>
+                    <div class="panel-actions">
+                        <button class="btn-panel" title="Add Task"><i class="fas fa-plus"></i></button>
+                        <button class="btn-panel" title="Clear All"><i class="fas fa-trash-alt"></i></button>
+                        <button class="btn-panel" title="Auto Schedule"><i class="fas fa-calendar-alt"></i></button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="queue-visualization">
+                        <div class="queue-track">
+                            <div class="task-node" data-task="1">
+                                <div class="task-icon"><i class="fas fa-code"></i></div>
+                                <div class="task-label">Code Review</div>
+                                <div class="task-progress">
+                                    <div class="progress-circle" style="--progress: 30%"></div>
+                                </div>
+                            </div>
+                            <div class="task-node" data-task="2">
+                                <div class="task-icon"><i class="fas fa-database"></i></div>
+                                <div class="task-label">Data Analysis</div>
+                                <div class="task-progress">
+                                    <div class="progress-circle" style="--progress: 65%"></div>
+                                </div>
+                            </div>
+                            <div class="task-node" data-task="3">
+                                <div class="task-icon"><i class="fas fa-search"></i></div>
+                                <div class="task-label">Web Research</div>
+                                <div class="task-progress">
+                                    <div class="progress-circle" style="--progress: 15%"></div>
+                                </div>
+                            </div>
+                            <div class="task-node" data-task="4">
+                                <div class="task-icon"><i class="fas fa-chart-line"></i></div>
+                                <div class="task-label">Monitoring</div>
+                                <div class="task-progress">
+                                    <div class="progress-circle" style="--progress: 85%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="queue-flow">
+                            <div class="flow-dot" style="--delay: 0s"></div>
+                            <div class="flow-dot" style="--delay: 0.3s"></div>
+                            <div class="flow-dot" style="--delay: 0.6s"></div>
+                            <div class="flow-dot" style="--delay: 0.9s"></div>
+                        </div>
+                    </div>
+                    <div class="queue-controls">
+                        <button class="btn-queue" id="btn-pause-queue">
+                            <i class="fas fa-pause"></i> PAUSE
+                        </button>
+                        <button class="btn-queue" id="btn-clear-queue">
+                            <i class="fas fa-trash"></i> CLEAR
+                        </button>
+                        <button class="btn-queue primary" id="btn-add-task">
+                            <i class="fas fa-plus"></i> ADD TASK
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Command Panel -->
+            <section class="panel command-panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-terminal"></i> COMMAND CENTER</h2>
+                    <div class="panel-actions">
+                        <button class="btn-panel" title="History"><i class="fas fa-history"></i></button>
+                        <button class="btn-panel" title="Save Session"><i class="fas fa-save"></i></button>
+                        <button class="btn-panel" title="Help"><i class="fas fa-question"></i></button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="command-interface">
+                        <div class="command-history" id="command-history">
+                            <div class="command-entry">
+                                <span class="command-prompt">$</span>
+                                <span class="command-text">status --all</span>
+                                <span class="command-time">12:34:56</span>
+                            </div>
+                            <div class="command-output">
+                                <div class="output-line">SYSTEM STATUS: ONLINE</div>
+                                <div class="output-line">ACTIVE AGENTS: 8</div>
+                                <div class="output-line">CPU: 42% | MEM: 1.2GB</div>
+                            </div>
+                        </div>
+                        <div class="command-input">
+                            <span class="command-prompt">$</span>
+                            <input type="text" class="command-field" id="command-field" placeholder="Enter command...">
+                            <button class="btn-send" id="btn-send-command">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="command-suggestions">
+                            <button class="suggestion">status</button>
+                            <button class="suggestion">agent list</button>
+                            <button class="suggestion">deploy</button>
+                            <button class="suggestion">monitor</button>
+                            <button class="suggestion">help</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-left">
+                <div class="connection-status">
+                    <div class="connection-indicator"></div>
+                    <span>CONNECTED TO OPENCLAW CORE</span>
+                </div>
+                <div class="system-info">
+                    <span class="info-item">v3.0.1</span>
+                    <span class="info-item">BUILD 2026.03.03</span>
+                    <span class="info-item">SESSION: #A7B9C2</span>
+                </div>
+            </div>
+            <div class="footer-center">
+                <div class="data-stream">
+                    <span class="stream-label">DATA STREAM:</span>
+                    <span class="stream-value active" id="data-stream">ACTIVE</span>
+                    <div class="stream-indicator"></div>
+                </div>
+            </div>
+            <div class="footer-right">
+                <button class="btn-footer" id="btn-security">
+                    <i class="fas fa-shield-alt"></i> SECURITY
+                </button>
+                <button class="btn-footer" id="btn-settings">
+                    <i class="fas fa-cogs"></i> SETTINGS
+                </button>
+                <button class="btn-footer" id="btn-fullscreen">
+                    <i class="fas fa-expand"></i> FULLSCREEN
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="agent-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-robot"></i> AGENT DETAILS</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Agent details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="alert-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> SYSTEM ALERTS</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert-list">
+                    <!-- Alerts will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+    
+    <script>
+        // Loading screen transition
+        window.addEventListener('load', function() {
+            const loadingScreen = document.getElementById('loading-screen');
+            const mainContainer = document.getElementById('main-container');
+            const loadingText = document.getElementById('loading-text');
+            
+            const loadingSteps = [
+                "INITIALIZING MISSION CONTROL...",
+                "LOADING AGENT INTERFACES...",
+                "CONNECTING TO OPENCLAW CORE...",
+                "SYNCHRONIZING DATA STREAMS...",
+                "MISSION CONTROL READY"
+            ];
+            
+            let step = 0;
+            const stepInterval = setInterval(() => {
+                if (step < loadingSteps.length) {
+                    loadingText.textContent = loadingSteps[step];
+                    step++;
+                } else {
+                    clearInterval(stepInterval);
+                    setTimeout(() => {
+                        loadingScreen.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingScreen.style.display = 'none';
+                            mainContainer.style.display = 'flex';
+                            // Initialize main application
+                            if (typeof initMissionControl === 'function') {
+                                initMissionControl();
+                            }
+                        }, 500);
+                    }, 1000);
+                }
+            }, 600);
+        });
+    </script>
+</body>
+</html>
